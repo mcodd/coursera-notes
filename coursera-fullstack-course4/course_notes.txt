@@ -1,4 +1,22 @@
-Lecture 5 - HTML content models
+Course notes
+Cool links for testing front-end dev stuff:
+ * jsfiddle.com
+ * codepen.io (create an account here and you can save all your stuff to look at over time); you can see featured pens that do really cool stuff
+
+
+HTML basics
+* HTML: structure (paragraphs, headers, footers, title, etc)
+* CSS: style (font size, color, etc)
+* Javascript: behavior (what happens after loading?  if i click on something?)
+
+W3C (orig org for standards back in 1997) and WHATWG (browser vendors started standards in 2004) started working together in 2007 on html5 (came out in 2011) - so, w3c is responsible for the html5 standard, and whatwg (they actually implement it) has an "evolving" HTML standard - so, seems like browsers must follow the W3C standard, but also can have additional features as they evolve w/the WHATWG (web hypertext application technology group)
+
+Resources to keep track of standards and validate your code:
+  * www.w3.org/TR/html5/
+  * caniuse.com
+  * validator.w3.org/#validate_by_input
+
+ Lecture 5 - HTML content models
 * block-level elements (create a new line) vs inline elements (no new line)
    - div
 * inline elements can contain other inline; block elements can contain other block or inline.
