@@ -1,0 +1,35 @@
+Lecture 5 - HTML content models
+* block-level elements (create a new line) vs inline elements (no new line)
+   - div
+* inline elements can contain other inline; block elements can contain other block or inline.
+   - span
+
+HTML 5 has 7 categories, not just those 2 - https://www.w3.org/TR/2011/WD-html5-20110525/content-models.html#kinds-of-content
+  * block-level is somewhat similar to "flow content" context
+  * inline is somewhat similar to "phrasing content"
+
+Lecture 6 - Heading elements and some new HTML5 semantic elements
+* sematic html element implies meaning to the context
+* _may_ help SEO
+* H1/H2 heading tags are semantic, use them to mark headings in your content, NOT as style
+* Always use H1 and it should contain the central meaning of the content (crucial to SEO)
+* other sematic tags - header, nav, section, article, aside, footer (ALL ARE BLOCK LEVEL ELEMENTS - visually you could of course just use div's and styles, but then you lose the sematic meaning when looking at the html itself)
+
+Lecture 7 - Lists
+* alredy knew all this (ul, ol, li)
+
+Lecture 8 - HTML Character Entity References
+* Escaping characters, e.g. < > & (&lt; &gt; &amp;)
+* copyright - &copy;
+* control wrapping - &nbsp (non-breaking space) - apply margins in span tags to create spacing between words; using &nbsp for that is a misuse of that tag!
+* use entity references like &quot; to get around rendering issues with encoding
+
+Lecture 9 - Creating Links
+* always use a "title" tag in your a href tag for screen readers
+* the "a" tag is both block and inline (flow and phrasing) so can surround a div tag, img tag, etc
+* fragment identifiers (critical in single-page-apps SPA's), e.g. the # stuff via <section id='foo'> or <a name='foo'>
+* external vs internal (relative) links
+
+Lecture 10 - Images
+* img:  src, width, height, alt tags
+   - use width and height so browser doens't "jump around" if it's loading and so broken images take up the right amount of space
