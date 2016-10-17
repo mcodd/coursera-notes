@@ -4,7 +4,7 @@ Cool links for testing front-end dev stuff:
  * codepen.io (create an account here and you can save all your stuff to look at over time); you can see featured pens that do really cool stuff
 
 
-HTML basics
+====== WEEK 1  - HTML ==========
 * HTML: structure (paragraphs, headers, footers, title, etc)
 * CSS: style (font size, color, etc)
 * Javascript: behavior (what happens after loading?  if i click on something?)
@@ -17,7 +17,7 @@ Resources to keep track of standards and validate your code:
   * validator.w3.org/#validate_by_input
 
  Lecture 5 - HTML content models
-* block-level elements (create a new line) vs inline elements (no new line)
+* block-level elements (create a new line) vs inline elements (no new line) - block level elements by default try to take up as much horizontal space as available
    - div
 * inline elements can contain other inline; block elements can contain other block or inline.
    - span
@@ -51,3 +51,91 @@ Lecture 9 - Creating Links
 Lecture 10 - Images
 * img:  src, width, height, alt tags
    - use width and height so browser doens't "jump around" if it's loading and so broken images take up the right amount of space
+
+====== WEEK 2 - CSS ==========
+
+Lecture 11 - Power of CSS
+
+Lecture 12 - Anatomy of a CSS rule
+* CSS rule consists of a selector (like p, a, etc) and the declaraction (property/value pairs)
+* styles can go in the head section of the document via "style" tag; one or more styles is a "stylesheet"
+* every browser comes w/default styles for various selectors
+
+Lecture 13: Element, Class, and ID Selectors
+* crafting selectors is key because javascript uses them similarly, so this is important!
+* an "element" selector is just specifying the element name (e.g. p for the <p> element; would not affect <div> of course)
+* a "class" selector is specified starting with a dot (e.g. .blue selector means that <p class='blue'> woudl get that CSS as would <div class='blue'>)
+* ID selectors start with a # (e.g. #blue selector would affect <div id="blue">) - there should only be one instance of each ID in a doc so if you want to reuse, it's best to use classes.
+* you can group selectors with commas:
+  div, .blue { color: blue;}
+  would impact <p class="blue"> as well as <div>foo</div>
+* CSS names are case sensitive
+
+Lecture 14: Combining Selectors
+* p.big means every p element with class="big"
+* child selector:
+  article > p  - means every p element that is a direct child of an article element, e.g. <article><p> would get that style, but not <p> or <article><div><p>
+* descendant selector:
+  article p  - means every p element at any level below an article element, not just the direct child
+* multiple classes can be applied to an element by just entering them separated by spaces (e.g. <div class="foo bar">)
+* specify multiple classes necessary to get a style:  e.g. .main.highlight affects things that have BOTH class main and highlight
+
+Lecture 15: Pseudo-class selectors
+* selector:pseudo-class
+  - examples: :link, :visited, :hover, :active, :nth-child(...)
+* set style of <a> elements based on whether they are visted or not
+* set style of elements when hovered over
+
+Lecture 16: Style placement
+* style declarations that appear inside and element  are called "inline styling"
+* style section inside the head of the page is another place to put it
+* external stylesheets are preferred - via <link rel="stylesheet" href="style.css"> - stylesheets specified second override those specified first.
+
+Lecture 17: Conflict resolution part 1
+* origin:
+   - when there's a conflict, last declaration wins (remember, HTML is processed top to bottom); external CSS is "declared" at the spot where it's linked to
+   - when there's not a conflict, they merge
+* inheritance:
+   - child elements inherit from parents - e.g. if you specify a style on "body" it's going to apply to every element in the body
+
+Lecture 17: Conflict resolution part 2
+* specificity:
+    - the most specific selector combination wins (this is the most complicated rule)
+    - the algorithm calculates a "score" for specificity and the highest score applies its style
+    	- style="..." (highest precedence) (1000 points)
+    	- ID (100 points each)
+    	- class, pseudo-class,attribute (10 points each)
+    	- # of elements (lowest precedence) (1 point each)
+    - use !important with your style to override specificity, e.g. "p { color: green !important; }"
+
+ Lecture 18: Styling text part 1
+ * use "font-family" to specify a set of fonts for the browser to chose from - often we have, as the last one, either "sans-serif" or "serif" (serif has the fancy bits on the letters)
+    - http://www.w3schools.com/cssref/css_websafe_fonts.asp
+ * color - 6 digit hexedecmial
+ * font-style: e.g., "italic"
+ * font-weight: 100-900 or "bold" (bold is 900?)
+ * font-size: e.g. 24px (pixels) - on a low-resolution device this is the actual number of pixels, but on a high-res device there would be multiple pixels for each "pixel" specified.  16px is default.
+ * text-transform: capitalize, lowercase, uppercase, etc
+ * text-align: left, right center
+
+ Lecture 18: styling text part 2
+ * relative font sizing with %'s and em's
+ * font-size: 120%, would increase default by 20%
+ * an "em" is a unit of measurement of an m in the particular font
+ * NOTE: relative font sizing has a CUMULATIVE effect, they do not override, so if you specify font-size: 120% in the body and then font-size: 2em in some sub-element, that 2em is going to be double the 120% (cumulative behavior)
+ * more common to use em's inside the doc and %'s in the top level body?
+
+ Lecture 19: The box model, part 1
+ * every element is a box, including content, padding, border, and margin
+ * content on the innermost, padding around, border around that, margin at the outside... margin seems to show the style of the thing around it
+ * specifying "width" is for the content only, does not include the padding or border... instead use "box-sizing: border-box" (default is "content-box") to change this behavior and have "width" be the width of the whole thing - all modern frameworks use border-box
+
+ Lecture 19: The box model, part 2
+ * box-sizing is a special CSS element that doesn't get inherited by children - use a star selector to apply everywhere: * { box-sizing: border-box; }
+ * margins collapse, larger margin wins, for top/bottom margins
+ * margins are cumulative for left and right margins
+
+Lecture 19: The box model, part 3
+* overflow property by default is "visible" meaning if you overflow the box content will print outside it.  "hidden" means it just disappears outside the box, and "auto" means scrollbars will appear to scroll it if it's too big for the box. "scroll" means a horizontal scrollbar too
+
+Lecture 20: The background property
