@@ -139,3 +139,27 @@ Lecture 19: The box model, part 3
 * overflow property by default is "visible" meaning if you overflow the box content will print outside it.  "hidden" means it just disappears outside the box, and "auto" means scrollbars will appear to scroll it if it's too big for the box. "scroll" means a horizontal scrollbar too
 
 Lecture 20: The background property
+* specify "background" css as shortcut to override a bunch of specific background-* type things, e.g. { background: url('yaakov.png') no-repeat top center; }
+
+Lecture 21: Positioning elements by floating
+* margins never collapse on floated elements
+* e.g. #p1 { background-color: #A52A2A; float: right}
+* when yuo float elements it takes them out of the document float
+* the, e.g. "clear: left" style will resume the regular document flow - it basically says none of the elements it affects should allow anything to float to the left of them
+
+Lecture 22: Relative and absolute element positioning, parts 1 & 2
+* specify precise offsets to move elements around
+* static positioning - normal document flow, default for all except html
+* relative positioning - element is positioned relative to its normal position in the normal document flow
+* "top, bottom, left, right" are the css offset properties 
+* relative positioning doesn't impact things around the element - other elements "don't know" that it's moved
+* e.g. "p { position: relative; top: 50px; left: 50px".  "top" really means "from top" (it's moving it down)
+* absolute positioning is relative to nearest ancestor who has a position set on it other than "static" - e.g. by default that's the "html" ancestor
+* with absolute positioning, element IS taken out of its normal flow
+
+Lecture 23: Media queries parts 1 & 2
+* make decisions between phone, tablet, and desktop
+* @media (max-width: 767px) { p { color: blue; }}
+* "max-width" is a Media Feature (reso.ves to true or fales)
+* max/min width, orientation, screen, print, etc
+* can use "and" or a comma which means "or", between Media Features
