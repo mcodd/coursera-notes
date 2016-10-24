@@ -102,10 +102,10 @@ Lecture 17: Conflict resolution part 2
 * specificity:
     - the most specific selector combination wins (this is the most complicated rule)
     - the algorithm calculates a "score" for specificity and the highest score applies its style
-    	- style="..." (highest precedence) (1000 points)
-    	- ID (100 points each)
-    	- class, pseudo-class,attribute (10 points each)
-    	- # of elements (lowest precedence) (1 point each)
+        - style="..." (highest precedence) (1000 points)
+        - ID (100 points each)
+        - class, pseudo-class,attribute (10 points each)
+        - # of elements (lowest precedence) (1 point each)
     - use !important with your style to override specificity, e.g. "p { color: green !important; }"
 
  Lecture 18: Styling text part 1
@@ -144,7 +144,7 @@ Lecture 20: The background property
 Lecture 21: Positioning elements by floating
 * margins never collapse on floated elements
 * e.g. #p1 { background-color: #A52A2A; float: right}
-* when yuo float elements it takes them out of the document float
+* when yuo float elements it takes them out of the document flow
 * the, e.g. "clear: left" style will resume the regular document flow - it basically says none of the elements it affects should allow anything to float to the left of them
 
 Lecture 22: Relative and absolute element positioning, parts 1 & 2
@@ -163,3 +163,29 @@ Lecture 23: Media queries parts 1 & 2
 * "max-width" is a Media Feature (reso.ves to true or fales)
 * max/min width, orientation, screen, print, etc
 * can use "and" or a comma which means "or", between Media Features
+
+Lecture 24: Responsive design part 1 & 2
+* mobile exceeds desktop browing and we want a single page to support both
+* site adapts layout using proportion-based grids, flexible images, and css3 media queries
+* verbosity/visual delivery may change
+* alternatives include server-side tech to do the same thing (then you manage both separately which is a little awkward; also, "mobile" doesn't really fit all anyway and you'd need to do responsive there anyway)
+* most popular layout is a 12 column grid (because of the factors of 12 - 1,2,3,4,6)
+* grids can be nested within each other
+* there's a meta tag called "name='viewport' content='width=device-width, initial-scale=1" which will force a phone not to auto-zoom its browser and to not break your responsive site :)
+
+Lecture 25: Twitter bootstrap part 1 & 2
+* most popular html, css, and js framework for developing responsive, mobile first projects on the web
+* "mobile first" - start with mobile coding; PLAN mobile from the start
+* CSS framework is mobile ready
+* why use bootstrap?
+    #1 complaint - too big, too bloated (solution, use selective download)
+                   writing your own is obviously going to be a lot of work :)
+
+Lecture 26: Bootstrap grid system part 1 & 2
+* Grid system basics:
+    * grid must be inside a div class="container" (fixed width) or "container-fluid" (full browser width)
+    * div class="row" inside the container div - creates horizonal groups of columns and applies negative left/right margins (so margin offsets the padding and we are left-aligned w/the edge of the browser)
+    * div class="col-md-4" (this is col-SIZE-SPAN) to device columns within the row
+        * SIZE is something like "lg" or "md" - when you are below the min width of that size, columns will collapse (e.g. stack) unless another rule applies
+        * SPAN - how many columns should the element span (values 1 - 12)
+    * you don't have to use divs, you could use a "nav" or whatever makes sense
