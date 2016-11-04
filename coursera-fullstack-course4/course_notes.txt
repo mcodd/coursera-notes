@@ -189,3 +189,272 @@ Lecture 26: Bootstrap grid system part 1 & 2
         * SIZE is something like "lg" or "md" - when you are below the min width of that size, columns will collapse (e.g. stack) unless another rule applies
         * SPAN - how many columns should the element span (values 1 - 12)
     * you don't have to use divs, you could use a "nav" or whatever makes sense
+
+MODULE 3 (coding the restaurant site)
+
+Lecture 27: visit with the client
+* clients work well with examples of similar businesses
+* less is more - make sure client understands that cleaner websites with directed calls to action are most effective - don't cram too much in
+* find a way for the client to invest (e.g. pay for photography if you're doing the work for free to build your portfolio)
+* google "web development client questionnaire"
+* know what already exists
+
+Lecture 28: Design overview
+* don't start coding right away - use mock-ups to get quick feedback from clients
+* balsamiq is great tool for mock-ups (balsamiq.com)
+* use google fonts to keep things easy/free
+
+Lecture 29: Ground rules and overview of setup
+* always use browser-sync in the directory or under where you are coding:
+    browser-sync start --server --directory --files "**/*"
+* google fonts - go to https://fonts.google.com/, browse around, find something you like, click "Select this font" and then you can click on the "1 Family selected" bar that shows up and you'll see a link to embed it, along the lines of:
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+Lecture 30: the navbar/header, part 1 and 2
+* we seem to be using id's for one-off style things related to a particular item on the page, e.g. 'header-nav', or 'logo-img'
+* meanwhile, we are using lots of bootstrap-specific classes to get our header nav set up
+    * class="navbar navbar-default" at the top leve
+    * a container div inside (not container-fluid as we don't want it to stretch the entire width of the browser)
+    * "navbar-header" and "navbar-brand" classes appropriately - see http://getbootstrap.com/components/#navbar for reference
+* use "pull-left" class to float something left in bootstrap
+* text-shadow, line-height - interesting styles to look into
+* text-decoration: none; (this will remove the underline under a link)
+* class 'visible-md' - make visible only on medium devices
+
+Lecture 31: button for future collapsible menu
+* "navbar-toggle" class magically appears only when small (hamburger menu)
+* "collapsed" plugin necessary to start the hamburger menu collapsed - data-toggle and data-target attributes to pull in/control some bootstrap js?
+
+Lecture 32: nav menu buttons
+* adding divs with id's that match the collapsible menu data-target; class is "collapse navbar-collapse"
+* menu items are unordered lists - add classes nav, navbar-nav, navbar-right
+* class "glyphicon" then the actual glyph, e.g. "class='glyphicon glyphicon-cutlery'" - http://getbootstrap.com/components/#glyphicons
+* class="hidden-xs" means hide it when we are xs size
+* <a href="tel:617-501-3348">foo</a> - clickable call link
+
+Lecture 33 parts 1 & 2: more navbar styling, fixing some issues
+* lots of issues w/floating things - needed to "clear" at some point
+* add negative margin to fix up the header, need to make text smaller to fit
+* create our own media queries to resize image (override #logo-img), etc on smaller screen
+* font-size: 5vw  (vw is viewport width - 1vw is 1% of viewport width, e.g. this is responsive)
+
+Lecture 34: coding the jumbotron
+* div with id "main-container" and class "container"
+* in that container, have a div with class "jumbotron"
+* inside the jumbotron div, have img with class="img-responsive visible-xs" so it shows up only on xs devices and scales with their size.
+* for larger sizes, we are using media queries setting .jumbotron element sizing
+   - background: url('img.jpg');
+     width: 100px;
+     height: 100px;
+     margin: 5px 5px 5px 0;
+* do same w/diff scaled img.jpg for medium and small...
+
+Lecture 35: navigation tiles
+* added a div class="row" (interesting that we don't always use rows, thi sisn't like a table, e.g. no "row" for the jumbotron)
+* using the standard way to have 2 cols for sm devices and 3 for md/lg (class="col-sm-4"...)
+* http://placehold.it a useful website for sizing images
+* use "background: url(...) no-repeat; background-position: center;" css instead of an img tag usually.  interesting.
+* inserting an embedded map - from google maps there's actually a link you can get from the hamburger menu in google maps... use this in the href to link to it; iframe can go into the middle of the div to embed it.
+
+Lecture 36: coding the footer, part 1 and 2
+* class="panel-footer"
+* div container inside it
+* we override .panel-footer class in our css, which is ok because it just merges into the other stuff in bootstrap.css
+* line-height - this is spacing between lines
+
+Lecture 38: coding the single menu category page, parts 1, 2, and 3
+* li class="active" makes it looks like something is selected
+* you can use a class of "img-responsive" for an image to have it scale, but add a max-width style to not stretch the element more than it should be to avoid pixelation
+* bootstrap has a nice float/clear fix - see "grid-responsive-reset" <div class="clearfix visible-xs-block"></div>
+
+=== WEEK 4 - JAVASCRIPT ===
+
+Lecture 40: where to place javascript code
+  * in head OR body, use <script> element and put code inline there
+  * in head OR body, use <script src=js/script.js></script>
+  * "printf" debugging:  console.log(var)
+
+Lecture 41: functions and vars
+  * equivalent: function a { ... } AND var a = function () {...}
+  * (a is the function now, not the var returned from the fn)
+  * variables are dynamically typed
+  * calling the fn:  a()
+  * args:
+      function compare (x,y) {
+        return x > y;
+      }
+  * passing args:
+      var a = compare(4, 5);
+      compare(4, "a");
+      compare();  <-- all args are always optional
+  * we have 2 scopers - global and function (lexical)
+     - there is no block scope
+     - gobal is available everywhere
+     - var available only in the function
+  * Scope chain - everything executed in an "execution context"
+     - each function invocation gets its own execution context
+     - each execution context gets its own variable environment, a special "this" variable and a reference to its outer environment
+     - so functions defined (NOT CALLED) within functions always have their external/outer vars available to them
+
+Lecture 42: javascript types
+  * a type is a particular data structure, js has 7 (6 primitive + 1 object)
+  * object is a collection of name/value pairs:
+  firstname: "Yaakov", lastname: "Chaikin", social: { linkedin: "foo", ... }
+  * primitive types are single value, NOT an object - they are immutable/read-only
+  * types:
+     - boolean: "true" or "false"
+     - Undefined: no value has ever been set (but it has been declared) - can only have one value: "undefined".  explicitly setting a variable to "undefined" is REALLY REALLY FROWNED ON
+     - Null: signifies lack of value
+     - Number: double-precision 64-bit floating point
+     - String: sequence of characters used to represent text
+     - Symbol: new in ES6 (released in 2015), not covered in this class
+
+Lecture 43: common language constructs
+  * string concatenation with +
+  * += is a thing (var string = "Hello"; string += " World")
+  * (ctrl-/ is an auto comment shortcut in sublime text - cool)
+  * NaN is what you get when you do stuff like "undefined / 5"
+  * equality is ==, strict equality === also verifies type (so "4" does not === 4, but "4" == 4)
+  * shortcut for assignment of multiple vars:  var x = 4, y = 5;
+  * things that are false:  false, null, undefined, "", 0, NaN
+  * things that are true: true, "hello", 1, -1, "false"
+  * you can find out if something is true or false by doing Boolean(thing) in the console
+  * curly braces must be put after a thing, not on next line... e.g:
+      return {
+        name: "Yaakov"
+      };
+    and NOT:
+      return
+      {
+        name: "Yaakov"
+      };
+    The second one will actually return undefined because javascript puts an implicit ; after the return!
+
+Lecture 44: handling default values
+  * setting a default in case something is undefined:
+      sideDish = sideDish || "whatever!";
+
+Lecture 45: Creating objects
+  *  using 'new Object()' syntax - example:
+    var company = new Object();
+    company.name = "Facebook";
+    company.ceo = new Object();
+    company.ceo.firstName = "Mark";
+    company.ceo.favColor = "blue";
+    console.log(company);
+    ...
+  * you can do crazy things like name object properties with spaces using bracket notation instead of dot notation:
+    company['ceo last name'] = "Zuckerberg";
+  * using object literal syntax - example:
+    var facebook = {
+      name: "Facebook",
+      ceo: {
+        firstName: "Mark",
+        favColor: "blue"
+      },
+      $stock: 110 // note that $ is a valid thing to call a variable in js - it has no special meaning
+    };
+
+Lecture 46: Functions explained
+  * function multiply(x, y) {
+      return x * y;
+    };
+  * functions are Objects... you can set properties on them:
+  * console.log(multiply(5,3));
+  * multiply.version = "v.1.0.0";
+  * there is a special toString() function for each Object that will print it out
+  * Function factories (functions returning functions):
+    function makeMultiplier(multiply) {
+      var myFunc = function (x) {
+        return multiplier * x; 
+      };
+      return myFunc;
+    }
+  * var multiplyBy3 = makeMultiplier(3);
+  * console.log(multiplyBy3(10));  <-- will return 30
+  * You can pass functions as arguments
+    function doOperationOn(x, operation) {
+      return operation(x);
+    }
+  * var result = doOperationOn(5, multiplyBy3);  <-- this should return 15
+  
+
+Lecture 47: Passing variables by value vs by reference
+  * primitives are passed by value, objects by reference
+  * the actual value of an object variable is a memory address - when you say a = b (if a is an object), what is actually happening is that the memory address stored in a is now also the memory address stored in b - so a and b have separate memory locations but what is stored in that location is the value of the memory location of the object - so if you change the object via a or b, both will see the change.
+
+Lecture 48: Function constructors, prototype, and the 'this' keyword
+  * by convention, function constructurs are capitalized
+  function Circle (radius) {
+    this.radius = radius
+    this.getArea = 
+      function () {
+        return Math.PI * Math.pow(this.radius,2);
+      };
+  }
+  var myCircle = new Circle(10);
+  * in this case the getArea function will be created for every instantiation of the Circle object - that's wasteful, use a prototype (and we'd remove the fn from the above Circle object):
+
+  Circle.prototype.getArea =
+    function () {
+      return Math.PI * Math.pow(this.radius, 2);
+    }
+  * you can see the prototypes in the console if you console.log(someCircleObject) under the __proto__ property
+  * remember to pass the "new" keyword to instantiate an object - you want "myCircle = new Circle(10)", NOT "myCircle = Circle(10)"
+
+Lecture 49: Object Literals and the 'this' Keyword
+  * var literalCircle = { // new Object() <-- defining object literals implies new object
+      radius: 10,
+      getArea: function () {
+        console.log(this); <-- in this case 'this' refers to this specific object
+        return Math.PI * Math.pow(this.radius, 2);
+      }
+    }
+    console.log(literalCircle.getArea());
+
+  * BUG: when you've got a function within a literal object function, 'this' refers to the global context!  Instead, make sure you define "var self = this" outside the embedded function:
+  var literalCircle = {
+    radius: 10,
+    getArea: function () {
+      var self = this;
+      console.log(this);
+
+      var increaseRadius = function() {
+        self.radius = 20;
+      };
+      increaseRadius();
+      console.log(this.radius);
+
+      return Math.PI * Math.pow(this.radius, 2);
+    }
+  }
+  console.log(literalCircle.getArea());  <-- returns 1256.63, but will instead return 314.159 if we don't have the "var self = this" line
+
+Lecture 50: Arrays
+  * var array = new Array();
+    array[0] = "Yaakov";
+    array[1] = 2;
+    array[2] = function (name) {
+      console.log("Hello " + name);
+    };
+    arary[3] = { course: " HTML, CSS & JS"};
+
+    console.log(array);
+    array[2]("matt");  <-- says "Hello matt"
+    array[2](array[0]); <-- says "Hello Yaakov"
+
+  * shorthand:
+    var names = ["Yaakov", "John", "Joe"];
+    for (var i = 0; i < names.length; i++) {
+      console.log(names[i]);
+    }
+  * arrays can be sparse... above we could say names[100] = "Jim" and now names[3-99] are "undefined"
+  * for loop over an object's properties:
+    var myObj = {
+      name: "Yaakov",
+      course: "HTML/CSS/JS",
+      platform: "Coursera"
+    };
+    for ( var prop in myObj) {
+      console.log(prop + ": " + myObj[prop]);
+    };
