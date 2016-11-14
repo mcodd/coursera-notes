@@ -458,3 +458,150 @@ Lecture 50: Arrays
     for ( var prop in myObj) {
       console.log(prop + ": " + myObj[prop]);
     };
+
+Lecture 51: Closures
+* function makeMultiplier (multiplier) {
+      return(
+        function (x) {
+          return multiplier * x;
+        }
+      );
+  }
+  var doubleAll = makeMultiplier(2);
+  console.log(doubleAll(10)); <-- returns 20, but how is the "2" still in the lexical environment for this call?  because of closures! (the outer lexcial environment of the memory space where doubleAll lives has "trapped" the 2)
+
+Lecture 52: Fake namespaces
+* when you're importing multiple js libraries into your html, you can have namespace collisions
+* declare your vars as a property of some library namespace object, e.g.
+  var yaakovGreeter = {};
+  yaakovGreeter.name = "Yaakov";
+  yaakovGreeter.sayHello = function () {
+    console.log("Hello " + yaakovGreeter.name);
+  };
+* Immediately Invoked Function Expressions (IIFEs) are functions that are invoked immediately on definition 
+  (function () {
+    console.log("Hello Coursera!");
+  })();  <-- these parens invoke it immediately
+* do like above, but define vars and fns inside it... now you've got local/private scope, a kind of fake namespace.  but you need to pass "window" into it:
+
+(function (window) {
+  var johnGreeter = {};
+  johnGreeter.name = "John";
+  var greeting = "Hi";
+  johnGreeter.sayHi = function () {
+    console.log(greeting + johnGreeter.name);
+  }
+  window.johnGreeter = johnGreeter;  <-- expose this to the global scope... whatever is in the johnGreeter object is exposed outside, whatever is not (e.g. the var called "greeting" is acting like a private var)
+})(window);
+
+Lecture 53: DOM Manipulation
+* docoument.getElementById("title") to get the element (the HTML of it)... some elements like input fields have a .value you can pull out too.
+* you can set elements by getting them then setting their attributes like .innerHTML, .textContent, etc
+* make sure to put your script at the end of the html if you are going to refer to things before it... it's executed from where you include it
+* the document element is an instance of the HTMLDocument class.
+* <button onclick="sayHello();">Say it!</button>
+* function sayHello() {
+    name = document.getElementById("name").value;
+    var message = "<h2>Hello " + name + "!</h2>";
+    document.getElementById("content").innerHTML = message;  <-- and if we were n't going to have html, we could use .textContent instead of innerHTML 
+    if (name === "student") {  <-- change up the H1 (id=title) element when the input name is "student"
+      var title = document.querySelector("#title").textContent;
+      title += " & Lovin' it!";
+      document.querySelector("h1").textContent = title;  <-- querySelector("h1") gives you the first h1 element; there's also queryAllSelector
+    }
+  }
+
+Lecture 54: Handling events
+* "events" are like onclick="sayHello();"
+* lots of other events
+   - onblur, ondblclick, onfocus, etc, etc
+* unobtrusive event binding:
+  * document.querySelector("button").addEventListener("click", sayHello);
+  * not that in this case the HTML never sees this action
+  * there's a shortcut: document.querySelector("button").onClick = sayHello;
+* using the unobtrusive event binding strategy is better because "this" points to the thing that triggered the event and you can do stuff like set this.textContent = "foo"
+* doing something when the page is loaded (so you don't have to call the script at the end of your html):
+document.addEventListener("DOMContentLoaded",
+function (event) {
+    // all the stuff in here happens before images/css/etc is loaded
+});
+
+Lecture 55:  the 'event' argument
+* console.log(event) <-- event arg is passed to your event handlers, e.g. sayHello above
+* lots of properties to an event - X and Y coordinates of the mouse, whether shift was pressed, etc, etc
+* event api docs under developer.mozilla.org/en-US/docs/Web/API/Event
+* event listener on the whole body to print out x and y when shift is down
+  document.querySelector("body").addEventListener("mousemove",
+    function (event) {
+      if (event.shiftKey == true) {
+        console.log("x: " + event.clientX);
+        console.log("y: " + event.clientY);
+      }
+    }
+  );
+
+Lecture 56: HTTP basics
+* URN: uniquely identify a resource/name of resource (does not tell us how to get to a resource) - e.g. something:named:in:a:hierarchical:way
+* URI: uniform resource identifier - identifies location of resource, but not necessarily how to get it - e.g. /official_website/index.html (does not include the query string)
+* URL: uniform resource locator - for of a URI that provides info on how to get to a resource, e.g. http://www.mysite.com/official_website/index.html
+* HTTP Request:
+GET /index.html?firstName=Yaakov HTTP/1.1
+* GET - retrieve resource, data passed as part of URI
+  POST - sends data to be processed, data passed as part of the message body
+* HTTP Response
+HTTP/1.1 200 OK  (version, status code, english phrase describing the status code)
+
+Lecture 57: AJAX basics - part 1, 2, and 3
+* Asynchronous javascript and XML
+* but mostly doesn't use XML anymore
+* ajax way fast, better experience for user, less bandwidth
+* async means multiple ajax calls can be happening simultaneously
+* the http requestor in a browser is async, whereas the js engine itself is synchronous - when js makes an ajax call, it passes along a js function (callback) as a handler to handle the response
+* window.XMLHttpRequest() is the request object
+* ajaxUtils.sendGetRequest = function(requestUrl, responseHandler) {
+  request = window.XMLHttpRequest();
+  request.onreadystatechange = function() { handleResponse(request, responseHandler); };  <-- we are returning a inline function expression here, not just a reference to a function because we are somewhere that can be called asynchronously and response/requestHandler may be getting reset to other things here with other ajax calls - we need each to be in its own scope!
+  request.open("GET", requestUrl true); <-- "true" is for async, if you put false the browser will wait
+  request.send(null); // POST would have parameters where we have "null" here
+  };
+* function handleResponse(request, responseHandler) {
+  if ((request.readyState == 4) && 
+      (request.status == 200)) { 
+        responseHandler(request);
+    }
+  }
+
+Lecture 58: Processing JSON
+* JavaScript Object Notation
+  - lightweird data-interchange format
+  - human readable/writable
+  - easy for machines to parse
+* property names and strings need to be in double quotes
+* var obj = JSON.parse(jsonString);
+  var str = JSON.stringify(obj);
+
+Lecture 59: fixing mobile nav menu automatic collapse
+* in jquery, $("#navbarToggle").blur(function ...) is the same as document.querySelector("#navbarToggle").addEventListener("blur",...)
+
+Lecture 60: dynamically loading home view content
+* to move towards SPA (single page application), we are going to insert content dynamically
+* www.ajaxload.info - get some free ajax spinny's (animated gif's)!
+* in chrome developer tools, use the XHR tab to see ajax
+
+Lecture 61: Dynamically loading menu categories - parts 1, 2
+* javascript that tries to reach out to a domain name that's not the same as the existing domain will be blocked (single origin) - CORS fixes this
+
+Lecture 62: Dynamically loading single category view
+* 
+
+Lecture 63: changing 'active' button style thru javascript
+* Remove a class from an element:
+  var classes = document.querySelector("#navHomeButton").className;
+  classes = classes.replace(new RegExp("active", "g"), "");
+  document.querySelector("#navHomeButton").className = classes;
+* Add a class to an element:
+  var classes = document.querySelector("#navMenuButton").className
+  if (classes.indexOf("active") == -1) {
+    classes += " active";
+    document.querySelector("#navMenuButton").className = classes;
+  }
