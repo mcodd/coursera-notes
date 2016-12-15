@@ -1,2 +1,1415 @@
 single page webapps with angularjs: https://www.coursera.org/learn/single-page-web-apps-with-angularjs/home/welcome
 
+Lecture 1: Why not just use straigtup javascript?
+* Why use a framework?
+  - javascript size and complexity seems to grow more than the HTML or CSS
+  in a general project.  frameworks help to deal w/this complexity.
+* How to control the complexity of our codebase?
+  - Be able to find the code relevant to a particular functionality quickly
+  - Be able to share the code and have others easily understand it
+  - Update functionality without a re-write of large portions of code
+  - Code reuse (DRY)
+  - Code should be fairly easy to test (small chunks of functionality)
+
+Lecture 2: Why does code get complex?
+* Hard to read code
+  - bad or inconsistent coding style
+  - hard to read variable & function names
+  - no comments or api documentation
+* Lack of high cohesion and low coupling
+  - high cohesion - when small pieces of functionality are strongly related
+    to each other within some code boundary (function, class, etc)
+    how well does that one thing stick to doing just that one thing?
+  - loose coupling - least possible dependency of one component on another
+    component.
+    if you change one component, you do not have to change the other
+* angularjs works towards high cohesion and loose coupling
+
+Lecture 3: Model-View-ViewModel (MVVM)
+* Design patterns are cookie-cutter approaches to common software
+  development issues - MVVM is the pattern we will use here.
+* Model - represents and holds raw data (Data/Business logic) - js
+  - some of this data, in some form, may be displayed in the view
+  - can also contain logic to retrieve the data from some source
+  - *** contains no logic associated with displaying the model ***
+* View - user interface (UI/Presentation) - html/css
+  - In a webapp it's just the HTML and CSS
+  - Only displays the data that it's given
+  - *** Never changes the data ***
+  - *** Declaratively broadcasts events, but never handles them ***
+* ViewModel - representation of the state of the view (Presentation logic) - js
+  - holds the data that's displayed in the view
+  - responds to events, aka presentation logic
+  - calls other functionality for business logic processing
+  - *** never asks the view to display anything *** (never calls
+    getElementById - achieves loose coupling)
+* Declarative binder - declaratively binds the model of the ViewModel to theview
+  - Declaratively means you don't have to write any code - the framework does it
+  - *** Key enabler of the whole MVVM pattern ***
+* Seems like the ViewModel is somewhat like the controller tier of a MVC
+  app where it might talk to objects presented by an ORM
+* AngularJS does not force you to the MVVM pattern, and is sometimes called
+  MV* (or Model/View/Whatever)
+
+Lecture 4: AngularJS installation and first simple app
+* download from https://code.angularjs.org/ - angular.min.js latest version
+  (for now was 1.5.8)
+* Create an IIFE:
+(function() {
+    'use strict'; // will throw errors around best practices
+    angular.module('myFirstApp', []); // array of dependencies - empty for now
+    .controller('myFirstController', function() {
+        // this is essentially the ViewModel (where the view presentation
+        // logic lives)
+      });
+})();
+* within your html, reference it
+<html ng-app="myFirstApp">
+...
+<body>
+  <div ng-controller="myFirstController">
+  </div>
+</body>
+</html>
+
+Lecture 5: Sharing Data With the View Through Scope
+* Share data between your app.js file (the IIFE above) and your index.html
+* AngularJS provides an object called $scope that allows this sharing
+.controller('myFirstController', function ($scope) {
+  $scope.name = "Yaakov"; // now you can say {{ name }} in index.html
+  $scope.sayHello = function() {
+    return "Hello Coursera!";
+  };
+});
+* In addition to just using {{}} in your html you can also use the following
+to assign the $scope variable to some html element:
+<input type="text" ng-model="name">
+- Now when we change that input, if the user changes it, the "name" var changes
+  along with their change, so if you say something like:
+  Inside my input is: {{ name }}
+  that will actually chnage as you change the text box
+* now we are sharing the data between the viewmodel and the view!
+
+Lection 6: implementing namecalculator in angularjs
+* From the previous calculator we designed w/bare bones js, change the input:
+<input type="text" ng-model="name" ng-keyup="displayNumeric();">
+<div>Total numeric value of name is: {{totalValue}}</div>
+* Then you just write the js function displayNumeric inside the angular IFFE:
+$scope.displayNumeric = function() {
+  var totalNameValue = calculateNumericForString($scope.name);
+  $scope.totalValue = totalNameValue;
+};
+
+Lecture 7: What's behind the "Magic" custom HTML attributes
+* HTML5 Custom Attributes - you can add attributes to tags, e.g.
+  <div id="target" greeting="hello"> ...
+* We can get at that via javascript getAttribute:
+  var elem = document.getElementById('target');
+  elem.getAttribute('greeting'); <-- gets the value "hello"
+* We can also find attributes:
+  var elem = document.querySelector("[greeting]"); // first 'greeting' element
+
+Lecture 8: Dependency Injection
+* Where did $scope come from? - angularJS created it via dependency injection,
+a design pattern implementing "inversion of control" for resolving dependencies
+* Pass a module as an argument to a function that will call a function of
+  that module you passed.
+  - client gets called with the dependency by some system (in our case angular)
+  - client is not responsible for instantiating the dependency
+
+Lecture 9: How Dependency Injection Works in Javascript
+* remember:
+ * ng-model can be used to assign a scope variable to an input field
+ * ng-controller is added to something like a div to bind a controller function
+named after it to that part of the html (.controller('ctrlr', ctrlr);
+function ctrlr ($scope) { ...; } can be referenced via
+<div ng-controller="ctrlr")
+ * and ng-app is associated w/the angular.module call in the IFFE
+* $filter is a service that can filter/format data... pass into controller
+function DIController($scope, $filter) {
+  $scope.name = "Yaakov";
+  $scope.upper = function() {
+    var upCase = $filter('uppercase');
+    $scope.name = upCase($scope.name);
+  };
+}
+In this example we bind the uppercase to ng-blur so we uppercase the thing
+in the text box when you click out if it: <input type="text" ng-blur="upper();">
+* how does angular magically know what $scope and $filter mean in controller
+arguments?  the answer is the js .toString function which returns the string
+of a function and you can see the arguments there... you can just parse the
+args there, which is what angular does.  it provides this functionality in its
+$injector service (you can call $injector.annotate(myfn), which will return
+an array of arguments to myfn)
+
+Lecture 10: Protecting Dependency Injection from Minification
+* minification - removing unnecessary characters from source code w/out
+changing the functionality, reducing amount of data transferred from server
+* one way to avoid minification issues is to define your controllers like this:
+.controller('DIController', ['$scope', '$filter', DIController]);
+Those are string literals and would not get minified.
+* another way, add this line to our original code, before the fn definition:
+DIController.$inject = ['$scope', '$filter'];
+
+Lecture 11: Expressions and Interpolation
+* expression: something that evaluates to a value (in angular, {{ foo }})
+* executed in the context of the scope and has access to properties on the
+$scope
+* doesn't throw TypeError or ReferenceErrors
+* control flow functions ('if', etc) are not allowed
+* accept a filter or filter chain to format the output
+* interpolation: process of evaluating a string literal containing one
+or more placeholders which are replaced with values
+* interpolation results change as $scope changes - not just a one-time
+templating event
+* functions can sit on the $scope as well:
+$scope.sayMessage = function () {
+  return "this is a message";
+};
+call that as {{sayMessage()}}
+* <img src="images/yaakov_{{stateOfBeing}}.png">  <-- neat, button can toggle
+$scope.stateOfBeing="hungry";
+$scope.feedYaakov = function () {
+  $scope.stateOfBeing = "fed";
+};
+* js console will still show an error as html is parsed before {{stateOfBeing}}
+is defined - to fix this we don't want to interpret this until angular is
+ready:
+<img ng-src="images/yaakov_{{stateOfBeing}}.png">
+
+Lecture 12: Filters
+* var output = $filter('uppercase')(value);
+  - also things like 'currency', 'lowercase', etc
+* the $filter service creates a filter function, so for example above we are
+  actually doing:
+  var filterFn = $filter('uppercase');
+  var output = filterFn(value);
+* Similar to Jinja you can use pipes in your HTML: {{ "Hello" | uppercase }}
+* Pass args to filter: {{ "Hello" | currency : arg1 : arg2 }}
+
+Lecture 13: Creating custom filters
+* First define a filter factory function (factory design pattern)
+  Factory Design pattern - central place in code that produces new objects
+  of functions
+function CustomFilterFactory() {
+  return function (input) {
+    // change input
+    return changedInput;
+  };
+}
+* Next, register the factory w/the module:
+angular.module('app', [])
+.controller('ctrl', Ctrl)
+.filter('custom', CustomFilterFactory);
+"custom" must be a valid angular expression identifier
+
+* finally, inject is with nameFilter:
+
+Ctrl.$inject = [ '$scope', 'customFilter' ];
+function Ctrol($scope, customFilter) {
+  var msg = "Some input";
+  customFilter(msg); // NOTE: "custom" is the name of the filter we
+                     // created and customFilter is therefore the name
+                     // of it when we call it
+}
+
+* Example - replace "likes" with "loves"
+function LovesFilter() {
+  return function (input) {
+    input = input || ""
+    input = input.replace("likes","loves");
+    return input;
+  };
+}
+
+Now, when we create our angular module:
+
+angular.module('MsgApp', [])
+.controller('MsgController', MsgController)
+.filter('loves', LovesFilter);
+
+MsgController.$inject = ['$scope', 'lovesFilter'];
+
+Now we can use it!
+
+
+function MsgController($scope, lovesFilter) {
+...
+$scope.sayLovesMessage = function() {
+  var msg = "Yaakov likes to each healthy snacks at night!";
+  msg = lovesFilter(msg);
+  return msg;
+}
+
+* If you want to have your filter include custom arguments:
+
+function TruthFilter() {
+  return function (input, target, replace) {
+    input = input || "";
+    input = input.replace(target, replace);
+    return input;
+  }
+}
+
+* When you use the filter in your html, you don't append "Filter" to it,
+e.g. {{ "Hello" | custom }}, NOT {{ "Hello" | customFilter }}
+
+Lecture 14: Digest Cycle
+* How does Angular know when we press keys and to update the page, etc
+* The event queue gets things on it when you include ng-click or
+  ng-keyup, etc in your element.
+* There are "watchers" in the angular context ($scope) that get looped
+  thru when events happen to see if something needs to be handled.
+* The thing that handles the clicks/button presses/etc is called
+  $digest.  Watchers are run in a loop until none of them have
+  changed anymore - often this means the loop gets run twice (once
+  when a button is pressed or something, then again to make sure no
+  other events need processing after that)
+* The loop over the watchers is called the "Digest loop" and the whole
+  thing including the event queue stuff is called the "Digest Cycle"
+* Watchers get set up automatically when you do something like {{ foo }}
+* $scope.$watch(function () { console.log("Digest loop fired"); })  <-- this
+  will log whenever the digest loop fires since it's a watch on anything
+  happening.  It will happen twice every time something changes, once if
+  nothing changes (by "changes" i mean the value in a {{ }}, etc).
+* Other watches get set on input elements with an ng-model - the digest
+  loop will fire every time you type in the input element
+
+Lecture 15: $digest and $apply
+* when we are using straight js calls like setTimeout or something from
+  an external library like jquery, we end up not going thru the digest
+  loop (they are not called within the angular context)- how do we fix this?
+* $scope.$digest() will execute the digest cycle for us, so that's one way
+* a better way, so errors are also thrown up to angular is this, but
+  it's still pretty messy to me (this uses $apply)
+  $scope.upCounter = function () {
+    setTimeout(function() {
+      $scope.$apply(function() { $scope.counter++; });
+    }, 2000);
+  };
+* angular actually has a timeout service, so in that case we should just do
+  $scope.upCounter = function () {
+    $timeout(function() { $scope.counter++; }, 2000);
+  };
+
+Lecture 16: 2-way, 1-way and 1-time Binding
+* 2-way binding:
+  <input type="text" ng-model="name">
+  if you update your controller, "name" can be changed... also, the
+  user's input can update the value as well
+* 1-way binding:
+  <div>Echo: {{ lastName }} </div>
+  only changes in browser when the controller updates it, not via user input
+* remember that the digest cycle runs every time an event occurs, across
+  all the watchers.  these bindings all create watchers - a rule of thumb
+  is that you shouldn't have more than 2000 watchers in a page.
+* to help combat these performance issues, use 1-time bindings:
+  <div>Echo: {{ ::fullName }}</div>
+  the double-colons means fill in that var once we hav initialized it, but
+  then get rid of the watcher and no longer include it in the digest cycle.
+
+Lecture 17: ng-repeat
+* looping construct for angularJS
+  <li ng-repeat="item in shoppingList1">{{ item }}</li>
+* $index is the current index thru the loop
+  {{ $index + 1}}. Buy {{ item.quantity }} of {{ item.name }}
+* You can add items to your array, etc and they'll dynamically show up
+  as the {{ }} are all watchers
+
+Lecture 18: Filtered ng-repeat
+* First, javascript filters:
+  * apply a function to an array (e.g. "map" type operations)
+  var new_array = arr.filter(callback[, thisArg])
+  * Ex:
+var numberArray = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
+console.log("number array:", numberArray);
+
+var filteredNumberArray = numberArray.filter(function (value) {
+  return value > 5;
+});
+* how do we use this in angularJS?
+  {{ filter_expression | filter: expression : comparator : anyPropertyKey }}
+* dynamically search a list on screen:
+<input type="text" ng-model="search">
+<ul>
+<li ng-repeat="item in shoppingList | filter : search">{{ item }}</li>
+</ul>
+
+Lecture 19: Prototypal Inheritance
+* Inheritance - when an object or class is based on another object or class
+  (parent), using the same implementation and/or the same values
+* Technique for code reuse as well as logical entity structure
+* Unlike OO inheritance, prototypal inheritance simply inherits variables
+  and values/methods from objects higher in the chain.  the "Prototype chain"
+  looks thru all parents, grandparents, etc for the property and resolve
+  to the first one it finds up the chain.
+* var child = Object.create(parent);
+  var grandchild = Object.create(child);
+* using function constructors:
+function Dog(name) {
+  this.name = name;
+  console.lolg("'this' is: ", this);
+}
+
+var myDog = new Dog("Max");
+console.log("myDog":, myDog);
+// this is not being used as a function constructor, just a function being called
+Dog("Max2");
+
+* Scope inheritance - comes into play when you have nested controllers in
+  your HTML, for example
+  <div ng-controller='Controller_1'>...
+    <div ng-controller='Controller_2'>...
+    ...
+* Prototypical inheritance applies here, so inner controllers have access
+  to outer controllers' scope:
+  $scope1.prop = "ctrl-1";
+  $scope2.prop then will also equal "ctrl-1"
+* what if we want to have the ability to have a "global" variable in all
+  the controllers' scopes where if we change one they all change?  Do this:
+  $scope1.obj.prop = "ctrl-1"
+  $scope2.obj.prop will of course be "ctrl-1", but if you do:
+  $scope2.obj.prop="ctrl-2" this will now change $scope.obj.prop as well
+* there's a shortcut to doing this using the "controller as" syntax:
+  ng-controller="Controller1 as ctrl1" ($scope.ctrl1) <-- controller instance
+  attached as an object here
+    ng-controller="Controller2 as ctrl2" ($scope.ctrl2)
+* angular.module('...')
+  .controller('Controller1', Controller1);
+  function Controller1 () {
+    this.myProp = "Some value";
+  }
+* Now you can do stuff like this in the HTML:
+  <div>
+  {{ ctrl2.myProp }}
+  ...
+  {{ ctrl1.myProp }}
+  </div>
+* "Controller as" syntax:
+in HTML:
+  <div ng-controller='ParentController2 as parent'>
+    <div ng-controller='ChildController2 as child'>
+    ...
+ in JS:
+  function ParentController2() {
+    var parent = this; <-- good practice to name same as label in HTML template
+    parent.value = 1;
+  }
+  ChildController2.$inject = ['$scope'];
+  function ChildController2($scope) {
+    var child = this;
+    child.value = 5;
+    console.log("ChildController $scope: ", $scope);
+  }
+
+* now child.value and parent.value can work independently since they are not
+  masking each other in this case.
+* To summarize, using the "Controller As" syntax (ControllerNmae as label)
+  causes Angular to create a property 'label' on the $scope.
+ * The label is a reference to "this", i.e. instance of Controller
+ * This works because .controller treats it as a function constructor
+* Make sure to attache properties to "this" inside of Controller, not $scope
+  -- at that point syntax is easier in HTML and JS and no masking occurs
+
+Lecture 20: Custom services
+* Responsibility of a controller
+  - Set up initial state of $scope
+  - Add behavior to $scope (NOT business logic, YES events)
+  - do NOT share code or state across controllers
+* Use a custom service for business logic and to share data
+angular.module('app', [])
+.controller('ctrl', Ctrl)
+.service('CustomService', CustomService);
+The quoted name 'CustomService' is the name you use to inject it into other
+services, controllers, etc.
+The unquoted name CustomService is treated as a Function Constructor
+* This service is guaranteed to be a Singleton - SINGLE INSTANCE, so each
+dependent component gets a reference to the same instance so multiple
+controllers injected with a Service all have acces to the same service
+instance - this is the way to share data
+* Services are lazily instantiated - only created if an application component
+declares it as a dependency
+
+Lecture 21: Custom services with .factory()
+* Factory design pattern - central place that produces new objects or fns
+* can produce any type of object, not just a singleton
+* can be used to produce dynamically customizable services
+* WARNINGS:
+** .factor() is NOT just another way of creating the same service you can
+   create with .service(), but it CAN BE.
+** .service() is also a factory, but a much more limited one (always produces
+    a non-configurable singleton)
+* angular.module('app',[]).controller('ctrl', Ctrl)
+  .factor('CustomService', CustomService)  <-- ok, looks a lot like .service
+  calls, but when we use .factory the CustomService call (unquoted) is a call
+  to a function that PRODUCES a service, not the actual service itself.
+* example of a factory fn:
+function CustomService() {
+  var factory = function() {
+    return new SomeService();
+  };
+  return factory;
+}
+so to access this one in your controller:
+var someSrv = CustomService();
+someSrv.method();
+
+OR return an object literal:
+
+function CustomService() {
+  var factory = {
+    getSomeService: function() {
+      return new SomeService();
+    }
+  };
+  return factory;
+}
+so to access this one in your controller:
+var someSrv = CustomService.getSomeService();
+someSrv.method();
+* Javascript throwing errors natively:
+  throw new Error("Foo bar");
+To use that Error, in your controller:
+list2.addItem = function() {
+  try {
+    shoppingList.addItem(list2.itemName, list2.itemQuantity);
+  } catch (error) {
+    list2.errorMessage = error.message;
+  }
+}
+
+Lecture 22,  Custom Services with .provider()
+* .provider is most flexible - you can custom configure the factory at
+  the beginning, before the app starts, then you can use it throughout
+* there is a propert $get property is a function that is  a factory
+  function attached to the provider function:
+  function ServiceProvider() {
+    var provider = this;
+    provider.config = {...};
+    provider.$get = function() {
+      var service = new Service(provider.config.prop);
+      return service;
+    };
+  }
+* register it just like you register controllers, services, factories, etc
+.provider('Service', ServiceProvider)
+* you can also register the config function which will run before anything
+else runs in your app:
+.config(Config)
+Config.$inject = ['ServiceProvider'];
+function Config(ServiceProvider) {
+  ServiceProvider.config.prop = 'value';
+}
+
+Lecture 23: ng-if, ng-show and ng-hide
+* useful for showing errors when there are some
+* example
+<div ng-if="list.errorMessage" class="error">Error:
+{{ list.errorMessage}}</div>
+
+alternately <div ng-show="list.errorMessage" ...
+or
+<div ng-hide="!list.errorMessage" ...
+
+Lecture 24,  Asynchronous Behavior with Promises and $q
+* before promises, we had callbacks - issue w/callbacks is that there's no
+easy/straightforward way to pass the result of async functions back to
+their callers (especially if the real recipient is a few layers away)
+* chaining async callbacks gets really weird/complicated as well
+* async calls in parallel also crazy with callbacks
+* promise API accounts for all of these issues, but is only implemented in JS
+ES6 (so not all browsers support it) - but Angular, it has its own implementation
+which will work anywhere!
+* PROMISE:  an object which can be passed around or returned that holds
+references to outcomes of async behavior.  In Angular, this is $q
+* ex:
+function asyncFunction() {
+  var deferred = $q.defer();
+  if (...) { deferrred.resolve(result); }
+  else { deferred.reject(error); }
+  return deferred.promise;
+}
+var promise = asyncFunction();
+promise.then(function(result) {
+  // do something with the result
+},
+function (error) {
+  // do something with the error
+});
+* Parallel processing of two promises/asyncs - if any promise rejects,
+then all will abort and we'll throw the error ($q.all is the magic here):
+service.addItem = function (name, quantity) {
+  // the following two functions include $timeout to be async
+  var namePromise = WeightLossFilterService.checkName(name);
+  var quantityPromise = WeightLossFilterService.checkQuantity(quantity);
+
+  $q.all([namePromise, quantityPromise]).
+  then(function (response) {
+    var itme = {
+      name: name,
+      quantity: quantity
+    };
+    items.push(item);
+  })
+  .catch(function(errorResponse) {
+    console.log(errorResponse.message);
+  });
+}
+* In summary, promises either get resolved or rejected - the "then"
+  method takes 2 args (both fn values) - 1st function to handle
+  success or 'resolve' outcome, second to handle error or 'reject' outcome
+* The "then" message returns a promise so you can chain them
+* $q.all allows us to execute promises in parallel, handling success/failure
+  in one place.
+
+Lecture 25: Ajax with $http service
+* $http({
+    method: "GET",
+    url: "http://someurl",  <-- this is the only required property
+    params: { param1: "value1"}
+    ...
+}).then(...);  <-- returns a promise
+* example .then function:
+$http({ url: "http://someurl" })
+.then ( function success(response) { // do something w/response.data },
+        function error(response) { // do something w/error response });
+* note that if response.data contains json, it'll be translated into
+  a data structure.
+* MISTAKE:
+var message = "";
+$http({ url: "http://someurl" })
+.then (function (response) {
+  message = response.data;
+});
+$scope.message = message; <-- will be blank because we set this before
+                              the promise returns - set it in the then!
+* coding up the restaurant site again - let's look at viewing
+the data at http://davids-restaurant.herokuapp.com/categories.json:
+
+We start with a service that will get the data:
+
+MenuCategoriesService.$inject = [ $http ];
+function MenuCategoriesService($http) {
+  var service = this;
+  service.getMenuCategories = function () {
+    var response = $http({
+      method: "GET",
+      url: ("http://davids-restaurant.herokuapp.com/categories.json")
+    });
+    return response;
+  };
+}
+
+The caller is the menuCategoriesController.  Starting at the top, with
+the angular call:
+
+angular.module('MenuCategoriesApp', [])
+.controller('MenuCategoriesController', MenuCategoriesController)
+.service('MenuCategoriesService',MenuCategoriesService);
+
+MenuCategoriesController.$inject = ['MenuCategoriesService'];
+function MenuCategoriesController(MenuCategoriesService) {
+  var menu = this;
+  var promise = MenuCategoriesService.getMenuCategories(); <-- see above service
+
+  promise.then(function (response) {
+    menu.categories = response.data; <-- menu.categories is what we will print in the html
+  })
+  .catch(function (error) {
+    console.log("Something went terribly wrong.");
+  });
+}
+
+* ng-click used instead of href in an <a> tag:
+<a href="" ng-click=
+
+* declare constants:
+angular.module(...)
+.constant('ApiBasepath', "http://davids-restaurant.herokuapp.com");
+
+Lecture 26: Directives: Dynamic HTML
+* AngularJS lets you extend HTML vocabulary for your application
+<ol>
+<list-item ng-repeat="item in list.items"></list-item>
+</ol>
+so, what's list-item?  it's angular-specific and gets translated into html
+during a "compilation" phase of loading the page.
+* A directive is a marker on a DOM element that tells angular's html
+compiler to attach a specific behavior to that DOM element
+- the compiler can even transform/change the DOM elements and its children
+- a marker can be an attribute, element name, comment, or CSS class
+* you can register it as part of the module:
+angular.module('app',[])
+.controller(...)
+.directive('myTag', MyTag) <-- first name is what appeasr in HTML, second
+is a factor function returning a DDO (Directive Definition Object).  The factory
+function only gets executed once.  e.g.:
+MyTag.$inject = [ ... ]
+function MyTag(...) {
+  var ddo = {
+    template: 'Hello World!'
+    ... };
+  return ddo;
+}
+then, in HTML
+<my-tag></my-tag>  (note camelCase/dash replacement here:  myTag -> my-tag)
+* you can also return/include a whole html file instead of a template/string:
+function Listitem() {
+  var ddo = {
+    templateUrl: 'listItem.html'
+  };
+  return ddo;
+}
+listItem.html:
+<li ng-repeat="item in list.items">
+<list-item-description></list-item-description>
+<button ng-click="list.removeItem($index);">Remove Item</button>
+</li>
+* Summary - a directive is a marker in html that angular compiles into
+some behavior
+* make sure you use a camelCase name to register the directive
+* the factory fn must return a ddo, only invoked once
+* HTML code becomes:
+  - reusable
+  - symantically relevant to the webapp you're building
+
+Lecture 27: restrict Property
+var ddo = {
+  restrict: 'AE', <-- default "Attribute or Element", alternately say "A" or
+                      "E" to restrict it to that thing
+  ...
+}
+
+Lecture 28, Directive’s Isolate Scope: “=” and “@”
+* We don't want to couple the controller and the directive... e.g. we put
+hardcoded variables in our directive that are specific to the controller
+and now we can't use it elsewhere
+* isolate scope '=' and '@':  you can isolate a scope for your directive:
+var ddo = {
+  scope: { } <-- now parent scope is not inherited
+  ...
+}
+
+Local scope property "myProp":
+
+var ddo = {
+  scope: {
+    myProp: '=attributeName' <-- HTML template attribute name the '=' means bidirectional
+  }
+  ...
+}
+
+if you just say myProp: '=', angular would assume the name is "my-prop"
+you could say '=?' if it could be undefined (in which case the attribute
+name is assumed to be the same as the name of the property)
+
+now in the html template: <my-directive my-prop="outerProp">
+
+you can use the @myAttribute sign that we want to bind myProp to the
+value of DOM attribute my-attribute - use like
+<my-directive my-attribute='{{ outerProp }}'>
+@ is unidirectional and alwasy results in the directive property being a string
+
+Lecture 29: Using Controllers Inside Directives
+* Often we want our directives to do more than just be a template holder.
+sometimes we want to bundle behavior - one option is to create a controller
+on the directive:
+var ddo = {
+  scope: {
+    prop: '<', <-- use one way binding whenever possible to watch only the
+                   identity of the parent property, not the property inside
+                   the directive
+  },
+  controller: ControllerFunction, <-- you can put a string to reference an existing
+                                      controller from your module
+  bindToController: true, <-- place our isolate scope properties on the controller
+  controllerAs: 'myCtrl', <-- label on "controller as" to use in your template
+  templateUrl: 'template.html'
+  };
+  return ddo;
+}
+ControllerFunction.$inject = ['Service'];
+function ControllerFunction(Service) {
+  var myCtrl = this;
+  myCtrl.method = function() {
+    var name="Hello " + myCtrl.prop;
+    ...
+  };
+}
+then, in html:
+<div ng-if="myCtrl.method()"> {{ myCtrl.prop }}</div>
+
+Lecture 30: Directive APIs and “&”
+* data manipulation needs to happen in the parent of a directive, not in
+the local controller of a directive (e.g. the "remove item" button in
+the shopping list example).  so we need some way to call functions on
+the parent controller from within the directive's controller.
+* reference binding does this:
+function Controller() {
+  this.method = function(arg1) {
+    this.prop = "Hi " + arg1;
+  }
+}
+
+In the ddo:
+var ddo = {
+  scope: {
+    myMethod: '&method' <-- calling fn in above controller
+  },
+  ...
+  templateUrl: 'template.html'
+};
+
+Controller's template.html:
+<div ng-controller="Controller as ctrl">
+<my-directive method="ctrl.method(myArg)"></my-directive>
+</div>
+
+Directive's template.html:
+<button ng-click="dirCtrl.myMethod({myArg: 'v1'});">Remove item</button>
+NOTE: "myMethod" is from the isolate scope mapping.  myArg MUST match the
+name in the controller template
+
+* summary
+& binding allows us to execute an expression in the context of the parent scope
+parent template must delcare an attribute providing:
+ - a method reference to call on the parent
+ - argument keys for directive to bind values to
+directive
+ - calls the referenced method
+ - provides a map of argument key to value pairs
+ - allows directive to pass data back to parent from the isolate scope
+
+Lecture 31: Manipulating the DOM with link
+* angular allows us to manipulate the DOM directly if we really need to -
+it exposes a watered-down version of jquery (jqlite) out of the box
+* angular also provides a window into DOM via the "link" property - here
+you would set up watchers, etc, for good reason
+function MyDirective() {
+  var ddo = {
+    scope: {...},
+    link: ShoppingListDirectiveLink,
+    ...
+    templateUrl: 'template.html'
+  };
+  return ddo;
+}
+function ShoppingListDirectiveLink(scope, element, attrs, controller) {
+  console.log("Link scope is:" + scope);
+  console.log("Controller is:" + controller)
+  console.log("Element is:" + element");
+  scope.$watch('list.cookesInList()', function( newValue, oldValue) {
+    console.log("Old value: ", oldValue);
+    console.log("New value: ", newValue);
+    if (newValue == true) {
+      displayCookieWarning();
+    } else {
+      removeCookieWarning();
+    }
+  });
+  function displayCookieWarning() {
+    // Using Angular jqLite
+    var warningElem = element.find("div"); <-- our warning is the only div in the template, turns out
+    warningElem.css('display', 'block');
+  }
+  function removeCookieWarning() {
+    // Using Angular jqLite
+    var warningElem = element.find("div"); <-- our warning is the only div in the template, turns out
+    warningElem.css('display', 'none');
+  }
+}
+
+in our template:
+<div class="error">OH THE HORROR! COOKIES DETECTED!</div>
+
+(.error class must be display:None initially)
+
+* To load jquery, source it before angular in your <head>.  the above
+example with jquery:
+var warningElem = element.find("div.error");
+warningElem.slideDown(900);
+OR (to hide) warningElem.slideUp(900);
+
+* Summary
+- DOM manipulation done via Link function - delcare the link fn in the DDO
+* link fn does not support injection; to use injected components or services
+inject them into the directive
+* 'scope' parameter is the exact $scope of the directive's controller
+* 'element' parameter represents the element of the directive and it's
+a jqLite or jQuery object (if jQuery is included)
+
+Lecture 32: Using Directive’s transclude to Wrap Other Elements
+* wrap arbitrary content using your directive - useful for dialog boxes
+that need customization
+* expressions and fn calls in your html template can be used
+* add a "transclude: true" in the DDO
+* evaluated in the PARENT controller, not the directive:
+<my-directive><span> WARNING! WARNING! {{ ctrl.someProp }}</span>...
+* in the directive template:
+<div ng-transclude></div>
+* ex:
+in our main html of shopping cart project:
+in the first list:
+<span class="warning">WARNING! WARNING! {{list.warning}}</span>
+in second list:
+<div><div class="title">OH THE HORROR!</div><div>{{list.warning}}</div></div>
+
+and in our main controller:
+
+list.warning="Cookies Detected!";
+
+in our directive, set "transclude: true"
+
+in the directive's template:
+<div class="error" ng-transclude</div>
+
+So we are using the scope of the original parent controller via transclusion
+to resolve the warning property.
+
+summary:
+* transclude allows whole templates to be passed into a directive
+* the wrapper context is evaluated in the parent's context, NOT the directives
+context
+* in the DDO use "transclude: true"
+* in the directives template, "ng-transclude" attribute designates place for
+the evaluated wrapper content
+
+Lecture 33, Part 1: Components & Component-Based Architecture
+* COMPONENTS - have well-defined public API - inputs and outputs
+* components are a part of angular 1.5 - simpler directives; leads towards
+architectures and style more compatible with angular 2
+* Components only control their _own_ view and data - NEVER modify data
+or DOM outside their own scope
+* Angular components ALWAYS use isolate scope
+* inputs should only ever be defined with one-way bindings:  "<" or "@"
+* never change the property of passed in object or array
+* outputs always use '&' for component event callbacks
+* pass data to callback thru param map { key: val }
+* components have a well-defined lifecycle
+** $onInit - controller initialization code
+** $onChanges(changeObj) - called whenever one-way bindings are updated - the
+changeObj.currentValue and changeObj.previous value allow to inspect state
+* $postLink - similar to the 'link' in directive
+* $onDestroy - when scope is about to be destroyed - used for cleanup
+* in component-based architecture, an application is a tree of components
+** entire app is comprised of components
+** each one has well-defined input and output
+** 2-way data binding to be avoided if possible
+
+angular.module('App', [])
+.component('myComponent', {
+  templateUrl: 'template.html',
+  controller: CompController, <-- not required, placed on scope w/label $ctrl if not defined
+  bindings: { <-- same as "scope" in directives
+    prop1: '<',
+    prop2: '@',
+    onAction: '&'
+  }
+})
+
+In the component template:
+<div ng-click="$ctrl.onAction({myArg: 'val'})">
+{{ $ctrl.prop1.prop }} and {{ $ctrl.prop2 }}
+</div>
+
+In the top-level HTML:
+<my-components prop1="val-1" prop2="@parentProp" on-action="parentFunction(myArg">
+...
+
+example w/shopping app:
+
+angular.module('ShoppingListComponentApp', [])
+.controller('ShoppingListController', ShoppingListController)
+.factory('ShoppingListFactory', ShoppingListFactory)
+.component('shoppingList', {
+  templateUrl: 'shoppingList.html',
+  controller: ShoppingListComponentController,
+  bindings: {
+    items: '<',
+    myTitle: '@title', <-- @ means dom-attribute value binding
+    onRemove: '&'
+  }
+});
+
+ShoppingListComponentController.$inject = ['$scope', '$element']
+function ShoppingListComponentController($scope, $element) {
+  var $ctrl = this; <-- $ctrl is a local variable but we call it $ctrl for consistency
+
+  $ctrl.cookiesInList = function () {
+    for (var i = 0; i < $ctrl.items.length; i++) {
+      var name = $ctrl.items[i].name;
+      if (name.toLowerCase().indexOf("cookie") !== -1) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+  $ctrl.remove = function (myIndex) {
+    $ctrl.onRemove({ index: myIndex });
+  };
+  $ctrl.$onInit = function () {
+    console.log("We are in $onInit()");
+  };
+  $ctrl.$onChanges = function (changeObj) {
+    // note that this does not show "items" because it's a reference.
+    // there is another fn called $doCheck that is called each turn of
+    // the digest cycle
+    console.log("Changes: ", changeObj);
+  }
+  $ctrl.$postLink = function () {  // note the $scope and $element vars were injected to the controller above
+    $scope.$watch('$ctrl.cookiesInList()', function (newValue, oldValue) {
+      console.log($element);
+      if (newValue === true) {
+        // Show warning
+        var warningElem = $element.find('div.error');
+        warningElem.slideDown(900);
+      }
+      else {
+        // Hide warning
+        var warningElem = $element.find('div.error');
+        warningElem.slideUp(900);
+      }
+    });
+  };
+
+  // ANOTHER WAY TO DO THE THING WE DID IN $postLink above (reqs ng >= 1.5.8)
+  // no need to set up a watch, etc
+  $ctrl.$doCheck = function () {
+    if ($ctrl.items.length !== totalItems) { <-- neat way to detect changes
+      console.log("# of items changed. Checking for Cookies!");
+      totalItems = $ctrl.items.length;
+      if ($ctrl.cookiesInList()) {
+        console.log("Oh, NO! COOKIES!!!!!");
+        var warningElem = $element.find('div.error');
+        warningElem.slideDown(900);
+      }
+      else {
+        console.log("No cookies here. Move right along!");
+        var warningElem = $element.find('div.error');
+        warningElem.slideUp(900);
+      }
+    }
+  };
+}
+
+in the template:
+<h3>Title: {{ $ctrl.myTitle }}</h3>
+<ol>
+  <li ng-repeat="item in $ctrl.items">
+    {{ item.quantity }} of {{ item.name }}
+    <button ng-click="$ctrl.remove($index);">Remove Item</button>
+  </li>
+</ol>
+<div class="error">WARNING! WARNING! COOKIES DETECTED!</div>
+
+in the html:
+...
+<shopping-list
+  items="list.items"
+  title="{{list.title}}"
+  on-remove="list.removeItem(index)"></shopping-list>
+...
+
+SUMMARY:
+* components encourage but do not enforce component-based architecture
+* components sould never modify data or DOM that doesn't belong to them
+* register with .component('name', configObj)
+
+Lecture 34: AngularJS Event System
+* Communicating with parent
+- html (ng-app)
+-- component1 <- to talk to component2, have component2 provide input
+--- component2 <- to talk to component1, use $scope.$parent, OR &method callback binding
+---- component3 <- talk to component1... $scope.$parent.$parent??? or use a singleton service injected into both services and a watch in component1
+* singleton service always works to share data, but that gets messy as you
+  have to inject everywhere and watch everywhere
+* the pub-sub design pattern and ng's event model solves these issues :)
+* the common channel is $scope.
+** $scope.$emit goes up the scope chain
+** $scope.$broadcast goes down the scope chain
+** subscribe via $scope.$on('event_name', handlerFunction)
+** you can broadcast an event to everything in the app via $rootScope.$broadcast
+* examples:
+PUB
+$scope.$emit('namespace:eventName', { prod: value});
+$scope.$broadcast('namespace:eventName', { prod: value});
+SUB
+$scope.$on('namespace:eventName', handler);
+function handler(event, data) {
+  if (data.prop === 'vall') {
+    ...
+  }
+}
+* example with spinner graphic - note the $rootScope.$broadcast entries:
+$ctrl.$doCheck = function () {
+  if ($ctrl.items.length !== totalItems) {
+    totalItems = $ctrl.items.length;
+
+    $rootScope.$broadcast('shoppinglist:processing', {on: true});
+    var promises = [];
+    for (var i = 0; i < $ctrl.items.length; i++) {
+      promises.push(WeightLossFilterService.checkName($ctrl.items[i].name));
+    }
+
+    $q.all(promises)
+    .then(function (result) {
+      // Remove cookie warning
+      var warningElem = $element.find('div.error');
+      warningElem.slideUp(900);
+    })
+    .catch(function (result) {
+      // Show cookie warning
+      var warningElem = $element.find('div.error');
+      warningElem.slideDown(900);
+    })
+    .finally(function () {
+      $rootScope.$broadcast('shoppinglist:processing', { on: false });
+    });
+  }
+};
+
+Now the event listener to catch those broadcasted events:
+
+.component('loadingSpinner', {
+  templateUrl: 'spinner.html',
+  controller: SpinnerController
+});
+...
+SpinnerController.$inject = ['$rootScope']
+function SpinnerController($rootScope) {
+  var $ctrl = this;
+
+  var cancelListener = $rootScope.$on('shoppinglist:processing', function (event, data) {
+    console.log("Event: ", event);
+    console.log("Data: ", data);
+
+    if (data.on) {
+      $ctrl.showSpinner = true;
+    }
+    else {
+      $ctrl.showSpinner = false;
+    }
+  });
+
+  $ctrl.$onDestroy = function () {
+    cancelListener();
+  };
+
+};
+
+and the spinner.html:
+
+<img ng-if="$ctrl.showSpinner"
+     class="loading-icon"
+     src="flickr-loading.gif"
+     alt="loading">
+
+* because we put it on the root scope, we need to clean up since it'll never
+get GC'd, from above (note that cancelListener is the value of the $rootScope.$on
+which happens to be the deregister function :)):
+$ctrl.$onDestroy = function () {
+  cancelListener();
+};
+
+Lecture 35: Modules
+* modules allow us to split up our app into smaller parts
+* modules can be shared with others too
+* to declare:
+  angular.module('module1', ['list', 'of' ,'module', 'dependencies']);
+* to use:
+  angular.module('module1') <-- note no deps here, this is where we're _using_ it
+  .controller('MyController', MyController);
+
+  <html ng-app="module1">...
+
+* best practice to put one module in each js file - you can also split out
+the controllers where you retrieve that module and use it:
+<script src="src/mod1/module1.js"></script>
+<script src="src/mod1/controller.js"></script>
+
+* use a .config method to set configuration, the .run method is executed
+right after .config so can use constants declared in .config, or services, but
+cannot use any providers which could be reconfigured during runtime
+* .config methods of dependent modules execute before the .config methods
+of the declared module - but all .config methods run before any of the .run
+methods.
+* example shopping app html loading scripts just before </body>
+(note the best practice of module.thing.ext where thing is component,
+factory, module, service, template, etc):
+
+<!-- Libraries -->
+<script src="lib/jquery-3.1.0.min.js"></script>
+<script src="lib/angular.min.js"></script>
+
+<!-- Modules -->
+
+<script src="src/shoppinglist/shoppinglist.module.js"></script>
+<script src="src/spinner/spinner.module.js"></script>
+
+<!-- 'ShoppingList' module artifacts -->
+<script src="src/shoppinglist/shoppinglist.component.js"></script>
+<script src="src/shoppinglist/shoppinglist.controller.js"></script>
+<script src="src/shoppinglist/shoppinglist.factory.js"></script>
+<script src="src/shoppinglist/weightlossfilter.service.js"></script>
+
+<!-- 'Spinner' module artifacts -->
+<script src="src/spinner/loadingspinner.component.js"></script>
+
+Lecture 36: Routing
+* How do users get from one view to another in your app?
+* the SPA model does this via routing (other options are like CGI, etc)
+* ajax improves things from the cgi model as we can just make background
+requests that only return parts of the page/data
+* even with ajax, tho, you can't go to the previous state of the view
+(back button doesn't work), because it's still the server in charge of routing
+* with the SPA model, we get #/view2, so the client reads the click and may
+or may not request things from the server
+* finally, we represent each view w/a view state and have the browser do
+the routing - client updates UI 'state' object
+* different packages for routing in ng: ngRoute and ui-router
+** ngRoute - separate JS file, developed by Google, no concept of UI state
+every route must be represented by a URL and no concept of nested views
+** ui-router - separate JS file more full featured, open source, UI state
+is a central concept (can have route w/no unique url), URL routing is also
+supported.  nested views are supported.
+example:
+<script src="lib/angular.min.js"></script>
+<script src="lib/angular-ui-router.min.js"></script>
+<body>
+  ...
+  <ui-view></ui-view>
+  ...
+</body>
+
+Declare our app module:
+angular.module('App',['ui.router']);
+
+Use our module:
+angular.module('App')
+.config(RoutesConfig);
+
+RoutesConfig.$inject = ['$stateProvider', '$urlRouterProvider'];
+function RoutesConfig($stateProvider, $urlRouterProvider) {
+  ...
+  $stateProvider
+  .state('view1', {
+    url: '/view1',
+    template: '<div>...</div>' (or templateUrl)
+  })
+  .state('view2', { ... });
+  ...
+  $urlRouterProvider.otherwise('/view1'); <-- default redirect to #/view1
+}
+
+* make sure you get version 0.3.1 of angular-ui-router.min.js - can be
+a bit tricky to find (look for google results from a cdn usually)
+* example (note, ui-sref relates to the route name and creates a href
+  the ui-sref-active specifies a class to apply when it's an active state):
+css
+.activeTab { font-weight: bold; }
+html
+    <div class="tabs">
+      <a ui-sref="tab1" ui-sref-active="activeTab">Tab 1</a>
+      <a ui-sref="tab2" ui-sref-active="activeTab">Tab 2</a>
+      <!-- <button ui-sref="tab2">Tab 2</button> -->
+    </div>
+
+    <ui-view></ui-view>
+
+* Lecture 37: Routing State with Controller
+Given the following state:
+.state('home', {
+  url: '/',
+  templateUrl: 'home.html'
+})
+
+then in home.html:
+
+<div ng-controller="HomeCtrl as home">
+  <div>content...</div>
+  <div>content...</div>
+</div>
+
+This would be inefficient because the HomeCtrl tag is there to declare
+the controller - ui-router allows us to declare it directly on the state
+defn instead:
+
+.state('home', {
+  url: '/',
+  templateUrl: 'home.html',
+  controller: 'HomeCtrl as home'
+})
+
+so now home.html can just be <div>content...</div> stuff
+
+* Examples for shopping cart app, note we have src/routes.js specified in
+our simple index.html:
+...
+<body>
+  <h1>Welcome to Premade No Cookie Shopping List</h1>
+
+  <ui-view></ui-view>
+
+  <!-- Libraries -->
+  <script src="lib/angular.min.js"></script>
+  <script src="lib/angular-ui-router.min.js"></script>
+
+  <!-- Modules -->
+  <script src="src/shoppinglist/shoppinglist.module.js"></script>
+
+  <!-- Routes -->
+  <script src="src/routes.js"></script>
+
+  <!-- 'ShoppingList' module artifacts -->
+  <script src="src/shoppinglist/shoppinglist.component.js"></script>
+  <script src="src/shoppinglist/main-shoppinglist.controller.js"></script>
+  <script src="src/shoppinglist/shoppinglist.service.js"></script>
+
+</body>
+...
+
+* now we have the following routes.js:
+
+(function () {
+'use strict';
+
+angular.module('ShoppingList')
+.config(RoutesConfig);
+
+RoutesConfig.$inject = ['$stateProvider', '$urlRouterProvider'];
+function RoutesConfig($stateProvider, $urlRouterProvider) {
+
+  // Redirect to home page if no other URL matches
+  $urlRouterProvider.otherwise('/');
+
+  // *** Set up UI states ***
+  $stateProvider
+
+  // Home page
+  .state('home', {
+    url: '/',
+    templateUrl: 'src/shoppinglist/templates/home.template.html'
+  })
+
+  // Premade list page
+  .state('mainList', {
+    url: '/main-list',
+    templateUrl: 'src/shoppinglist/templates/main-shoppinglist.template.html',
+    controller: 'MainShoppingListController as mainList'
+  });
+}
+
+})();
+
+* so we default to the "home" state and then we've got main-list as well
+
+Lecture 38: Routing State with resolve
+* Should we retrieve data before going to the next state and pass to the state?
+some people say yes!  we can use "resolve" to do this:
+.state('view1', {
+  url: '/view1',
+  templateUrl: 'view1.html',
+  controller: 'ViewCtrl as view1',
+  resolve: {
+    myData: ['Service', function (Service) {
+      return Service.getData();
+    }]
+  }
+});
+* in the example above, Service.getData returns a promise and that value
+is injected into View1Ctrl as 'myData'
+* the router will not advance us to this new state (view1) until the
+promise returned by the Service in the "resolve:" section is resolved.
+* if the promise is rejected, we will not advance to the new state
+View1Ctrl.$inject = ['myData'];
+function View1Ctrl(myData) {
+  var view1 = this;
+  view1.myData = myData;
+}
+
+* if we add a resolve: property to our mainList state, it'll look like this:
+.state('mainList', {
+  url: '/main-list',
+  templateUrl: 'src/shoppingList/...',
+  controller: 'MainShoppingListController as mainList',
+  resolve: {
+    items: [ 'ShoppingListService', function(ShoppingListService) {
+      return ShoppingListService.getItems();
+    }]
+  }
+});
+
+so now in our MainShoppingListController we need to do this, instead of the
+whole $onInit thing:
+
+MainShoppingListController.$inject = ['items'];
+function MainShoppingListController(items) {
+  var mainlist = this;
+  mainlist.items = items;
+}
+
+Lecture 39: Routing State with URL Parameters
+* example:
+.state('view1', {
+  url: '/view1/{param1]}',
+  ...
+  resolve: {
+    myData: ['$stateParams', function ($stateParams) {
+      return getDataBasedOn($stateParams.param1);
+    }]
+  }
+});
+* Lecture 39 folder has new state defined:
+.state('itemDetail', {
+  url: '/item-detail/{itemId}',
+  templateUrl: 'src/shoppinglist/templates/item-detail.template.html',
+  controller: 'ItemDetailController as itemDetail',
+  resolve: {
+    item: ['$stateParams', 'ShoppingListService',
+          function ($stateParams, ShoppingListService) {
+            return ShoppingListService.getItems()
+              .then(function (items) {
+                return items[$stateParams.itemId];
+              });
+          }]
+  }
+
+Lecture 40: Routing State with Nested Views
+* child states inherit custom resolves and data properties from parents
+* so if parent already called server for data, child can use it
+.state('view1.child', {
+  url: '/detail/{param1}',
+  templateUrl: 'view1Detail.html',
+  ...
+}
+* url would be /parentUrl/detail/{param1}
+* example in shoppingcart thing (note no more "resolve" property!  we have them all from parent):
+// Item detail
+.state('mainList.itemDetail', {
+  // url: '/item-detail/{itemId}',
+  templateUrl: 'src/shoppinglist/templates/item-detail.template.html',
+  controller: 'ItemDetailController as itemDetail',
+  params: {
+    itemId: null <-- in lieue of the url including itemId - sref can still use it
+  }
+});
+
+ItemDetailController also changes:
+(function () {
+'use strict';
+
+angular.module('ShoppingList')
+.controller('ItemDetailController', ItemDetailController);
+
+// Version with resolving to 1 item based on $stateParams in route config
+ItemDetailController.$inject = ['$stateParams', 'items'];
+function ItemDetailController($stateParams, items) {
+  var itemDetail = this;
+  var item = items[$stateParams.itemId];
+  itemDetail.name = item.name;
+  itemDetail.quantity = item.quantity;
+  itemDetail.description = item.description;
+}
+
+})();
