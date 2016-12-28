@@ -1413,3 +1413,337 @@ function ItemDetailController($stateParams, items) {
 }
 
 })();
+
+
+Lecture 41: Router State Transition Events
+* all these events are fired on the root scope so everyone can see them
+* $stateChangeStart - fires when a state change transition begins - if we're
+waiting for server response, etc, this would be the time to fire off a spinner
+* $stateChangeSuccess or $stateChangeError indicate the end of a state change
+* they are fired as, e.g.,  $rootScope.$on('$stateChangeSuccess', event, toState,
+toParams, fromState, fromParams)
+* remember that errors do not show up in the console w/ui-router, you need
+to catch them with $stateChangeError, which comes wiht an "error" arg at the end
+* $stateChangeStart - use event.preventDefault() to prevent the transition
+from occurring (cancelling it)
+* re-do our spinner module using ui-router events intead of our own:
+
+SpinnerController.$inject = ['$rootScope']
+function SpinnerController($rootScope) {
+  var $ctrl = this;
+  var cancellers = [];
+
+  $ctrl.$onInit = function () {
+    var cancel = $rootScope.$on('$stateChangeStart',
+    function(event, toState, toParams, fromState, fromParams, options){
+      $ctrl.showSpinner = true;
+    });
+    cancellers.push(cancel);
+
+    cancel = $rootScope.$on('$stateChangeSuccess',
+    function(event, toState, toParams, fromState, fromParams){
+      $ctrl.showSpinner = false;
+    });
+    cancellers.push(cancel);
+
+    cancel = $rootScope.$on('$stateChangeError',
+    function(event, toState, toParams, fromState, fromParams, error){
+      $ctrl.showSpinner = false;
+    });
+    cancellers.push(cancel);
+  };
+
+  $ctrl.$onDestroy = function () { <-- execute the cancellers onDestroy
+    cancellers.forEach(function (item) {
+      item();
+    });
+
+ui-router docs: https://github.com/angular-ui/ui-router/wiki
+note that ui-router 1.0 will be component-centric (no longer have to
+specify controllers in state, can use components)
+
+Lecture 42: Form Validation
+* form validation uses the ng-model tag
+* bind name property of controller to this text input box:
+<input type="text" name="name" ng-model="ctrl.name">
+* also, for buttons
+<button ng=click="ctrl.go()">
+* now you can define html5 validation attributes.  e.g.
+<input type="text" name="name" ng-model="ctrl.name"
+ required
+ min-length="4">
+* specify "novalidate" on the form element to avoid the native browser validation
+stuff from getting in the way: <form name='formName' novalidate>...
+* give feedback to the user if things don't validate:
+<span ng-if="formName.name.$error.required && formName.name.$touched">
+Name is required
+</span>
+NOTE: "$touched" means someone clicked into it and out of it
+NOTE: $error.<thing> evaluates to true when there was a validation error on <thing>
+* example:  enable a button only when form is validated
+<button ng-disabled="formName.$invalid" ng-click="ctrl.go()">Submit</button>
+* angular adds and removes classes from elements as the validate or not, and
+you can take advantage of that in css.  e.g.:
+.ng-touched.ng-valid {
+  border: 2px green solid;
+}
+.ng-touched.ng-invalid {
+  border: 2px red solid;
+}
+* an input type="email" will alwasy implicitly define email validations
+so you can use regform.email.$invalid to check it
+* things link phone numbres you can validate via regex's (using "pattern"):
+<input type="text" name="phone" placeholder="Phone ###-###-####"
+ ng-model="reg.user.phone"
+ pattern="(\d{3})-(\d{3})-(\d{4})">
+* keep a button disabled when anything in your form is invalid:
+<button ng-disabled="regForm.$invalid" ng-click="reg.submit()">Submit</button>
+
+Lecture 43: Testing Javascript with Jasmine
+* use mocking libraries to simulate things like the $http service (to simulate
+a server response) when writing unit tests
+* Jasmine is a great framework for testing javascript, especially good with
+Angular code
+* There's a commandline and browser-based framework
+* download it from https://github.com/jasmine/jasmine/releases, unzip
+it and remove the src and spec files, replace with your own and update the
+ServerSpec.html file to point at your stuff - open it in browsersync to get
+tests run every time you save your code! Lecture43 folder has this
+* example spec:
+describe("My Function", functio() {
+  var initValue;
+
+  beforeEach(function() { <-- initialize your test vars
+    initValue = "someVal";
+  });
+
+  it("should not return true", function() { <-- this is the actual test
+    var resolt = someFunc(initValue);
+    expect(result).not.toBe(true);
+  });
+});
+* put an "x" in front of a function to temporarily disable tests, e.g.
+xit...
+xdescribe...
+
+Lecture 44: Testing AngularJS Controllers
+* Remember in MVVM The view model (controller) is not allowed to change data -
+don't have to include the DOM
+* Angular also provides a helper module to help us test controllers - ngMock
+which is a separate download
+* To test a controller you need:
+  * Load module controller is in with angular.mock.module('name')
+  * use $controller to instantiate the controller you want to test
+  * use the controller instance to invoke methods, access props, etc
+* describe("tests", function() {
+  beforeEach(module('myApp')); <-- "module" is an alias for angular.mock.module
+  ...
+});
+* altenately, if you have more than one thing you want to do in the beforeEach
+function:
+describe("tests", function() {
+  beforeEach(function () {
+    module('myApp');
+    setupMock();
+  });
+  ...
+});
+* you can include multiple beforeEach calls
+* pattern to inject your controller:
+beforeEach(inject(function (_$controller_) {
+  $controller = _$controller_;
+  ...
+}))
+* another way to create a mock service for our module using $provide service:
+beforeEach(function() {
+  module(function ($provide) {
+    $provide.service('MockService', function() {
+      var service = this;
+      service.aMethod = function () {
+        return 'fake-value';
+      };
+    });
+  });
+
+  module('MyApp');
+})
+
+var $controller;
+var myCtrl;
+
+// note that you could also create the controller directly in a test if you
+// only need it once
+beforeEach(inject(function (_$controller_, MockService) {
+  $controller = _$controller_;
+  myCtrl = $controller('MyCtrl', { MyService: MockService});
+}));
+...
+it("should update init value on item add", function() {
+  myCtrl.addItem();
+  expect(myCtrl.value).toBe("fake-value");
+});
+* TO summarize, $provide services can be injected only into module('name'), but
+for other services, use angular.mock.inject method
+
+Lecture 45: Testing AngularJS Services and $http
+* mock $http as follows
+var myService;
+var $httpBackend;
+
+beforeEach(function() {
+  module('MyApp');
+  inject(function($injector) {
+    myService = $injector.get('MyService');
+    $httpBackend = $injector.get('$httpBackend');
+  });
+});
+it('should return some data', function () {
+  $httpBackend.whenGET('http://...').response(['val1', 'val2']);
+  myService.getItems().then(function(reponse) { <-- getItems() returned a promise so we can use .then, etc
+    expect(response.data).toEqual(['val1','val2']);
+  });
+  $httpBackend.flush(); <-- tell the service to flush pending requests to
+                            run async while allowing test to run synchronously
+});
+
+
+Lecture 46: Testing AngularJS Directives
+* example:
+var $compile;
+var $rootScope;
+var expectedHtml = 'some html';
+
+beforeEach(module('MyApp'));
+
+beforeEach(inject(function(_$rootScope_, _$compile_) {
+  $rootScope = _$rootScope_;
+  $compile = _$compile_;
+}));
+
+* when you use templateUrl, you'll want to use the following pattern (he mentions
+that "Karma" is a commandline tool that can get your templates into the cache
+more effectively maybe, but it's not covered in the course):
+beforeEach(inject(function($templateCache) {
+  var template = null;
+  var req = new XMLHttpRequest();
+  req.onload = function() {
+    template = this.responseText;
+  };
+  req.open("get", "template.html", false); <-- get synchronously to use our real template
+  req.send()
+  $templateCache.put("template.html", template) <-- put our template in the
+                                                   $templateCache service for later use
+}));
+
+it('should properly insert content', function() {
+  var item = { name: "John" };
+  $rootScope.item = item;
+  var html = "<my-directive item='item'></my-directive>";
+
+  var elem = $compile(html)($rootScope);
+
+  $rootScope.$digest(); <-- update our template w/the data
+
+  expect(elem.html()).toContain(expectedHTml);
+});
+* Summary
+** use mock inject to inject $rootScope and $compile services in beforeEach
+** if directive uses templateUrl, use some method to replace the template
+contents into $templateCache (use Karma in real life - http://karma-runner.github.io/1.0/intro/installation.html)
+** place whatever props are neeed for the directive on the $rootScope
+in the test method
+** use $compile to compile the directive/bind the data
+** Call $rootScope.digest() to update the compiled HTML
+** retrieve with .html() method and compare to a good string
+
+Lecture 47: Testing AngularJS Components
+* example
+var $componentController;
+beforeEach(module('MyApp'));
+beforeEach(
+  inject(function (_$componentController_) {
+  $componentController = _$componentController_;
+}));
+
+it('should update value', function() {
+  var bindings = {
+    prop1: { val: 'some val' }
+  };
+  var ctrl = $componentController('myComp', {}, bindings);
+
+  var updatedVal = ctrl.val;
+  expect(updatedVal).toEqual('some val');
+})
+
+* Summary:
+** to test a component:
+** in beforeEach use mock inject to inject $componentController service
+** in test method
+*** set up bindings object with expected props (if any)
+*** set up objects controller expects to be injected (if any)
+*** Create controller with $componentController('componentName', injections, bindings)
+** execute methods and check properties against your expectations
+
+Lecture 53: Coding Up $http Interceptor
+* to plug into the lifecycle of the $http service (e.g. so you can have a
+spinner show up when we're fetching something), use the interceptor as
+follows (loading.interceptor.js) - note that we will use this factory in
+the common module.js.
+
+common.module.js (add this):
+
+config.$inject = ['$httpProvider'];
+function config($httpProvider) {
+  $httpProvider.interceptors.push('loadingHttpInterceptor');
+}
+
+loading.interceptor.js:
+(function() {
+"use strict";
+
+angular.module('common')
+.factory('loadingHttpInterceptor', LoadingHttpInterceptor);
+
+LoadingHttpInterceptor.$inject = ['$rootScope', '$q'];
+/**
+ * Tracks when a request begins and finishes. When a
+ * request starts, a progress event is emitted to allow
+ * listeners to determine when a request has been initiated.
+ * When the response completes or a response error occurs,
+ * we assume the request has ended and emit a finish event.
+ */
+function LoadingHttpInterceptor($rootScope, $q) {
+
+  var loadingCount = 0;
+  var loadingEventName = 'spinner:activate';
+
+  return {
+    request: function (config) {
+      // console.log("Inside interceptor, config: ", config);
+
+      if (++loadingCount === 1) {
+        $rootScope.$broadcast(loadingEventName, {on: true});
+      }
+
+      return config;
+    },
+
+    response: function (response) {
+      if (--loadingCount === 0) {
+        $rootScope.$broadcast(loadingEventName, {on: false});
+      }
+
+      return response;
+    },
+
+    responseError: function (response) {
+      if (--loadingCount === 0) {
+        $rootScope.$broadcast(loadingEventName, {on: false});
+      }
+
+      return $q.reject(response);
+    }
+  };
+}
+
+})();
